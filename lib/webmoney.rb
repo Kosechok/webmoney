@@ -10,7 +10,7 @@ require 'rubygems'
 require 'nokogiri'
 
 $LOAD_PATH.unshift(File.expand_path(File.dirname(__FILE__) + "/../lib"))
-%w(signer interfaces wmid passport purse request_xml request_retval request_result messenger).each{|lib| require lib}
+%w(signer interfaces wmid passport purse request_xml request_string request_retval request_result messenger string).each{|lib| require lib}
 
 # Module for Webmoney lib. Instance contain info
 # for WMT-interfaces requests (wmid, key, etc).
@@ -20,18 +20,26 @@ module Webmoney
   include RequestXML
   include RequestRetval
   include RequestResult
+  include RequestString
 
   # Error classes
   class WebmoneyError < StandardError; end
   class RequestError < WebmoneyError;  end
-  class ResultError < WebmoneyError;  end
+  class KeeperType < RequestError; end
+  class ResultError < WebmoneyError; end
+  class CreditAmountError < WebmoneyError; end
+  class UnknownTender < WebmoneyError; end
+  class TooMuchAmount < WebmoneyError; end
   class IncorrectWmidError < WebmoneyError; end
   class IncorrectPurseError < WebmoneyError; end
   class NonExistentWmidError < WebmoneyError; end
   class CaCertificateError < WebmoneyError; end
+  class ExchangeRateError < WebmoneyError; end
+  class ExchangeRateToFastError < WebmoneyError; end
+  class RateNotChangedError < WebmoneyError; end
 
-  attr_reader :wmid, :error, :errormsg, :last_request, :last_response, :interfaces, :rid
-  attr_accessor :messenger
+  attr_reader :wmid, :error, :errormsg, :last_request, :last_response, :interfaces, :rid, :last_url
+  attr_accessor :messenger, :debt_pass, :indx_login, :indx_pass
 
 
   # Preset for W3S
@@ -60,6 +68,9 @@ module Webmoney
     end
 
     @wmid = Wmid.new(opt[:wmid])
+    @debt_pass = opt[:debt_pass] || nil
+    @indx_login = opt[indx_login] || nil
+    @indx_pass = opt[indx_pass] || nil
 
     # When x509, key and cert is path to file or filename in ~/.wm/,
     # or initialized PKey::RSA and X509::Certificate objects
@@ -166,15 +177,18 @@ module Webmoney
 
   def request(iface, opt ={})
     raise ArgumentError, "should be hash" unless opt.kind_of?(Hash)
+    raise KeeperType, "only for winpro" if (iface.to_s.include?('credit') && !classic?)
 
     # Use self wmid when not defined
     opt[:wmid] ||= @wmid
 
     # Do request
-    res = https_request(iface, make_xml(iface, opt))
-
+    res = https_request(iface, make_body(iface, opt))
     # Parse response
-    doc = Nokogiri::XML(res)
+    doc = Nokogiri::XML(res, nil, "UTF-8") do |config|
+      config.noerror.noblanks
+    end
+
     parse_retval(iface, doc)
     make_result(iface, doc)
   end
@@ -190,28 +204,37 @@ module Webmoney
 
   # Make HTTPS request, return result body if 200 OK
 
-  def https_request(iface, xml)
+  def https_request(iface, req_body)
     @last_request = @last_response = nil
 
-    url = @interfaces[iface]
+    @last_url = url = @interfaces[iface][:url]
+    http_method = @interfaces[iface][:method] || :post
 
     http = Net::HTTP.new(url.host, url.port)
     http.verify_mode = OpenSSL::SSL::VERIFY_PEER
-    #if File.file? @ca_cert
-    #  http.ca_file = @ca_cert
-    #elsif File.directory? @ca_cert
-    #  http.ca_path = @ca_cert
-    #else
-    #  raise CaCertificateError, @ca_cert
-    #end
+    # if File.file? @ca_cert
+    #   http.ca_file = @ca_cert
+    # elsif File.directory? @ca_cert
+    #   http.ca_path = @ca_cert
+    # else
+    #   raise CaCertificateError, @ca_cert
+    # end
     unless classic?
       http.cert = @cert
       http.key = @key
     end
     http.use_ssl = true
     http.ssl_version = :TLSv1
-    @last_request = xml
-    @last_response = result = http.post( url.path, xml, "Content-Type" => "text/xml" )
+
+    if http_method == :post                # [needle1, needle2].any? {|needle| a.include? needle}
+      @last_request = req_body
+      @last_response = result = http.post( url.path, req_body, "Content-Type" => "text/xml" )
+    else
+      url.query = URI.encode_www_form(req_body)
+      @last_request = url
+      @last_response = result =  http.request(Net::HTTP::Get.new(url))
+    end
+
     case result
       when Net::HTTPSuccess
         result.body
@@ -225,15 +248,20 @@ module Webmoney
   # Create unique Request Number based on time,
   # return 14 digits string
   def reqn
-    #t = Time.now
-    #msec = t.to_f.to_s.match(/\.(\d\d)/)[1] rescue '00'
-    #t.strftime('%y%m%d%H%M%S') + msec
-    (Time.now.to_f * 10000).to_s.split(".")[0]
+    t = Time.now
+    msec = t.to_f.to_s.match(/\.(\d\d)/)[1] rescue '00'
+    t.strftime('%y%m%d%H%M%S') + msec
   end
 
-  def make_xml(iface, opt)            # :nodoc:
-    iface_func = "xml_#{iface}"
-    send(iface_func, opt).to_xml
+  def make_body(iface, opt)            # :nodoc:
+    http_method = @interfaces[iface][:method] || :post
+    if http_method == :post
+      iface_func = "xml_#{iface}"
+      send(iface_func, opt).to_xml
+    else
+      iface_func = "hash_#{iface}"
+      send(iface_func, opt)
+    end
   end
 
   def parse_retval(iface, doc)         # :nodoc:

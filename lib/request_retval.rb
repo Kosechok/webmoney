@@ -73,7 +73,7 @@ module Webmoney::RequestRetval    # :nodoc:all
     @error = retval_element.inner_html.to_i
     @techerrordesc = doc.at('//retdesc').inner_html
     @errormsg = doc.at('//userdesc').inner_html
-    raise Webmoney::ResultError, [@error, @errormsg].join('-') unless @error == 0 
+    raise Webmoney::ResultError, [@error, @errormsg].join('-') unless @error == 0
   end
 
   def retval_conf_payment(doc)
@@ -81,15 +81,14 @@ module Webmoney::RequestRetval    # :nodoc:all
     @error = retval_element.inner_html.to_i
     @errormsg = doc.at('//userdesc').inner_html
     @techerrordesc = doc.at('//retdesc').inner_html
-    raise Webmoney::ResultError, [@error, @errormsg].join('-') unless @error == 0 
+    raise Webmoney::ResultError, [@error, @errormsg].join('-') unless @error == 0
   end
 
-  def retval_confirm_trust(doc)
+  def retval_operation_history(doc)
     retval_element = doc.at('//retval')
     @error = retval_element.inner_html.to_i
-    @errormsg = doc.at('//userdesc').inner_html
-    @techerrordesc = doc.at('//retdesc').inner_html
-    raise Webmoney::ResultError, [@error, @errormsg].join('-') unless @error == 0
+    @errormsg = doc.at('//retdesc').inner_html
+    raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error == 0
   end
 
   def retval_set_trust(doc)
@@ -107,6 +106,13 @@ module Webmoney::RequestRetval    # :nodoc:all
     raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error == 0
   end
 
+  def retval_merchant_token(doc)
+    retval_element = doc.at('//retval')
+    @error = retval_element.inner_html.to_i
+    @errormsg = doc.at('//retdesc').inner_html
+    raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error == 0
+  end
+
   def retval_transaction_moneyback(doc)
     retval_element = doc.at('//retval')
     @error = retval_element.inner_html.to_i
@@ -114,4 +120,131 @@ module Webmoney::RequestRetval    # :nodoc:all
     raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error == 0
   end
 
+  def retval_credit_list(doc)
+    @error = doc.at('//retval').inner_html.to_i
+    raise Webmoney::ResultError, @error unless @error == 0
+  end
+
+  def retval_credit_bid(doc)
+    @error = doc.at('//retval').inner_html.to_i
+    @amount = doc.at('//nearestamount').inner_html.to_f if doc.at('//nearestamount')
+    raise Webmoney::UnknownTender, @error if @error == 30002
+    raise Webmoney::CreditAmountError, [@error, @amount].join(' ') if @error == 30111
+    raise Webmoney::TooMuchAmount, @error if @error == 110
+    raise Webmoney::ResultError, @error unless @error == 0
+  end
+
+  def retval_credit_bids_list(doc)
+    @error = doc.at('//retval').inner_html.to_i
+    raise Webmoney::ResultError, @error unless @error == 0
+  end
+
+  def retval_credit_bid_del(doc)
+    @error = doc.at('//retval').inner_html.to_i
+    raise Webmoney::ResultError, @error unless @error == 0
+  end
+
+  def retval_credit_borrower_tenders(doc)
+    @error = doc.at('//retval').inner_html.to_i
+    raise Webmoney::ResultError, @error unless @error == 0
+  end
+
+  def retval_exchanger_tender_place(doc)
+#    retval_element = doc.at('//retval')
+    @error = doc.at('//retval').inner_html.to_i
+    @errormsg = doc.at('//retdesc').inner_html
+    raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error == 0
+  end
+
+  def retval_exchanger_tender_change_rate(doc)
+    @error = doc.at('//retval').inner_html.to_i
+    @errormsg = doc.at('//retdesc').inner_html
+    raise Webmoney::ExchangeRateError, [@error, @errormsg].join(' ') if @error == 7
+    raise Webmoney::ExchangeRateToFastError, [@error, @errormsg].join(' ') if @error == 9
+    raise Webmoney::RateNotChangedError, [@error, @errormsg].join(' ') if @error == 5
+    raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless [0, 5, 7, 9].include? @error
+
+  end
+
+  def retval_exchanger_my_tenders(doc)
+    @error = doc.at('//retval').inner_html.to_i
+    @errormsg = doc.at('//retdesc').inner_html
+    raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error == 0
+  end
+
+  def retval_exchanger_my_counter_tenders(doc)
+    @error = doc.at('//retval').inner_html.to_i
+    @errormsg = doc.at('//retdesc').inner_html
+    raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error == 0
+  end
+
+  def retval_exchanger_current_tenders(doc)
+    raise Webmoney::ResultError if doc.at( '//BankRate')['ratetype'].empty? || doc.at( '//BankRate')['direction'].empty?
+  end
+
+  def retval_exchanger_tender_devide(doc)
+    @error = doc.at('//retval').inner_html.to_i
+    @errormsg = doc.at('//retdesc').inner_html
+    raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error == 0
+  end
+
+  def retval_exchanger_tenders_union(doc)
+    @error = doc.at('//retval').inner_html.to_i
+    @errormsg = doc.at('//retdesc').inner_html
+    raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error == 0
+  end
+
+  def retval_exchanger_my_tender_counters(doc)
+    @error = doc.at('//retval').inner_html.to_i
+    @errormsg = doc.at('//retdesc').inner_html
+    raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error == 0
+  end
+
+  def retval_exchanger_wmid_balance(doc)
+    @error = doc.at('//retval').inner_html.to_i
+    @errormsg = doc.at('//retdesc').inner_html
+    raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error == 0
+  end
+
+  def retval_indx_balance(doc)
+
+  end
+
+  def retval_debt_block_user(doc)
+    @error = doc.at('//retval').inner_html.to_i
+    @errormsg = doc.at('//retdesc').inner_html
+    raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error == 0
+  end
+
+  def retval_debt_credit_lines(doc)
+    @error = doc.at('//retval').inner_html.to_i
+    @errormsg = doc.at('//retdesc').inner_html
+    raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error == 0
+  end
+
+  def retval_debt_return_loan(doc)
+    @error = doc.at('//retval').inner_html.to_i
+    @errormsg = doc.at('//retdesc').inner_html
+    raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error == 0
+  end
+
+  def retval_debt_credits_list(doc)
+    @error = doc.at('//retval').inner_html.to_i
+    @errormsg = doc.at('//retdesc').inner_html
+    raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error == 0
+  end
+
+  def retval_debt_credit_details(doc)
+    @error = doc.at('//retval').inner_html.to_i
+    @errormsg = doc.at('//retdesc').inner_html
+    raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error == 0
+  end
+
+  def retval_files_get_session(doc)
+
+  end
+
+  def retval_files_auth(doc)
+
+  end
 end

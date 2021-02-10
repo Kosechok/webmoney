@@ -9,18 +9,20 @@ module Webmoney
     end
 
     # Attestate types
-    ALIAS       = 100
-    FORMAL      = 110
-    START       = 120
-    PERSONAL    = 130
-    PAYER       = 135
-    CAPITALLER  = 136
-    DEVELOPER   = 140
-    REGISTRATOR = 150
-    GARANT      = 170
-    SERVICE     = 190
-    SERVICE2    = 200
-    OPERATOR    = 300
+    ALIAS                 = 100
+    FORMAL                = 110
+    START                 = 120
+    PERSONAL              = 130
+    MERCHANT              = 135
+    CAPITALLER_PERSONAL   = 136
+    CAPITALLER_COMPANY    = 137
+    TRANSACT_AUTOMATION   = 138
+    DEVELOPER             = 140
+    REGISTRATOR           = 150
+    GARANT                = 170
+    SERVICE               = 190
+    SERVICE2              = 200
+    OPERATOR              = 300
 
     def self.worker= (worker)
       @@worker = worker
@@ -64,11 +66,11 @@ module Webmoney
         :created_at => Time.xmlschema(att_elm['datecrt'])
       }
       attestat.merge!( att_elm.attributes.inject({}) do |memo, a|
-        a[1].value.empty? ? memo : memo.merge!(a[0].to_sym => a[1].value)
+        a[1].value.empty? ? memo : memo.merge!(a[0].to_sym => a[1].value.encode("UTF-8", "CP1251",:invalid => :replace, :undef => :replace, :replace => "?"))
       end )
 
       userinfo = root.at('certinfo/userinfo/value/row').attributes.inject({}) { |memo, a|
-        memo.merge!(a[0].to_sym => Attribute.new(a[1].value.strip))
+        memo.merge!(a[0].to_sym => Attribute.new(a[1].value.encode("UTF-8", "CP1251",:invalid => :replace, :undef => :replace, :replace => "?")))
       }
       root.at('certinfo/userinfo/check-lock/row').attributes.each_pair do |k,v|
         attr = userinfo[k.to_sym]
