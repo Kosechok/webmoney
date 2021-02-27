@@ -113,13 +113,6 @@ module Webmoney::RequestRetval    # :nodoc:all
     raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error == 0
   end
 
-  def retval_transaction_moneyback(doc)
-    retval_element = doc.at('//retval')
-    @error = retval_element.inner_html.to_i
-    @errormsg = doc.at('//retdesc').inner_html
-    raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error == 0
-  end
-
   def retval_credit_list(doc)
     @error = doc.at('//retval').inner_html.to_i
     raise Webmoney::ResultError, @error unless @error == 0
@@ -130,7 +123,6 @@ module Webmoney::RequestRetval    # :nodoc:all
     @amount = doc.at('//nearestamount').inner_html.to_f if doc.at('//nearestamount')
     raise Webmoney::UnknownTender, @error if @error == 30002
     raise Webmoney::CreditAmountError, [@error, @amount].join(' ') if @error == 30111
-    raise Webmoney::TooMuchAmount, @error if @error == 110
     raise Webmoney::ResultError, @error unless @error == 0
   end
 
@@ -238,13 +230,5 @@ module Webmoney::RequestRetval    # :nodoc:all
     @error = doc.at('//retval').inner_html.to_i
     @errormsg = doc.at('//retdesc').inner_html
     raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error == 0
-  end
-
-  def retval_files_get_session(doc)
-
-  end
-
-  def retval_files_auth(doc)
-
   end
 end

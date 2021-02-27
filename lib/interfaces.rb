@@ -16,7 +16,7 @@ module Webmoney
       :get_passport       => { :url => 'https://apipassport.webmoney.ru/asp/XMLGetWMPassport.asp' , # x11
                                :x509 => lambda {|url| url.sub(/\.asp$/, 'Cert.asp')} },
       :reject_protection  => { :url => 'XMLRejectProtect.asp' }, # x13
-      :transaction_moneyback => { :url => 'XMLTransMoneybackP.asp' }, # x14
+      :transaction_moneyback => { :url => 'XMLTransMoneyback.asp' }, # x14
       :i_trust            => { :url => 'XMLTrustList.asp'  },    # x15
       :trust_me           => { :url => 'XMLTrustList2.asp' },    # x15
       :trust_save         => { :url => 'XMLTrustSave2.asp' },    # x15
@@ -59,11 +59,8 @@ module Webmoney
       exchanger_wmid_balance:            { url: 'https://wm.exchanger.ru/asp/XMLWMIDBalance.asp'},
       exchanger_tenders_union:           { url: 'https://wm.exchanger.ru/asp/XMLTransUnion.asp'},
 # indx
-      # indx_balance:                      { url: 'https://secure.indx.ru/api/v1/tradejson.asmx?op=Balance'}
-# files
-      files_get_session:                 { url: 'https://files.webmoney.ru/login.json', method: :get },
-      files_auth:                        { url: 'https://files.webmoney.ru/authenticate.json'},
-      files_get_file:                    { url: 'https://files.webmoney.ru/g/', method: :get}
+      indx_balance:                      { url: 'https://secure.indx.ru/api/v1/tradejson.asmx?op=Balance'}
+
     }
   end
 

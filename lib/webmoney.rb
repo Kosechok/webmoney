@@ -29,7 +29,6 @@ module Webmoney
   class ResultError < WebmoneyError; end
   class CreditAmountError < WebmoneyError; end
   class UnknownTender < WebmoneyError; end
-  class TooMuchAmount < WebmoneyError; end
   class IncorrectWmidError < WebmoneyError; end
   class IncorrectPurseError < WebmoneyError; end
   class NonExistentWmidError < WebmoneyError; end
@@ -38,8 +37,8 @@ module Webmoney
   class ExchangeRateToFastError < WebmoneyError; end
   class RateNotChangedError < WebmoneyError; end
 
-  attr_reader :wmid, :error, :errormsg, :last_request, :last_response, :interfaces, :rid, :last_url
-  attr_accessor :messenger, :debt_pass, :indx_login, :indx_pass
+  attr_reader :wmid, :error, :errormsg, :last_request, :last_response, :interfaces, :rid
+  attr_accessor :messenger, :debt_pass
 
 
   # Preset for W3S
@@ -69,8 +68,6 @@ module Webmoney
 
     @wmid = Wmid.new(opt[:wmid])
     @debt_pass = opt[:debt_pass] || nil
-    @indx_login = opt[indx_login] || nil
-    @indx_pass = opt[indx_pass] || nil
 
     # When x509, key and cert is path to file or filename in ~/.wm/,
     # or initialized PKey::RSA and X509::Certificate objects
@@ -207,7 +204,7 @@ module Webmoney
   def https_request(iface, req_body)
     @last_request = @last_response = nil
 
-    @last_url = url = @interfaces[iface][:url]
+    url = @interfaces[iface][:url]
     http_method = @interfaces[iface][:method] || :post
 
     http = Net::HTTP.new(url.host, url.port)

@@ -249,22 +249,6 @@ module Webmoney::RequestResult    # :nodoc:all
     }
   end
 
-  def result_transaction_moneyback(doc)
-    {
-        :inwmtranid  => doc.at('//operation/inwmtranid').inner_html.to_i,
-        :pursesrc  => doc.at('//operation/pursesrc').inner_html.to_s,
-        :pursedst  => doc.at('//operation/pursedest').inner_html.to_s,
-        :comiss => doc.at('//operation/comiss').inner_html.to_f,
-        :amount => doc.at('//operation/amount').inner_html.to_s,
-        :desc => doc.at('//operation/desc').inner_html.to_s,
-        :datecrt => doc.at('//operation/datecrt').inner_html.to_i,
-        :dateupd => doc.at('//operation/dateupd').inner_html.to_i,
-        :retval       => doc.at('//retval').inner_html.to_i,
-        :retdesc      => doc.at('//retdesc').inner_html,
-        :invoiceid => doc.at('//operation')['id'].to_i,
-        :ts => doc.at('//operation')['ts'].to_i
-    }
-  end
 
   def tender_helper(doc)
     my_tender = {}
@@ -523,15 +507,6 @@ module Webmoney::RequestResult    # :nodoc:all
   end
 
   def result_debt_credit_details(doc)
-
-  end
-
-  def result_files_get_session(doc)
-    session: JSON.parse(doc)["session"]["session_id"]
-
-  end
-
-  def result_files_auth(doc)
 
   end
 end

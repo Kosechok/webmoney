@@ -353,22 +353,6 @@ module Webmoney::RequestXML    # :nodoc:all
     }
   end
 
-  def xml_transaction_moneyback(opt)
-    req = reqn()
-    Nokogiri::XML::Builder.new { |x|
-      x.send('w3s.request') {
-        x.reqn req
-        x.wmid @wmid
-        x.sign sign("#{req}#{opt[:tranid]}#{opt[:amount]}") if classic?
-        x.trans do
-          x.inwmtranid opt[:tranid]
-          x.amount opt[:amount]
-          x.wmb_denomination 1
-        end
-      }
-    }
-  end
-
   def xml_exchanger_tender_place(opt)
     Nokogiri::XML::Builder.new { |x|
       x.send('wm.exchanger.request'){
