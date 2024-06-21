@@ -68,5 +68,15 @@ module Webmoney::RequestString    # :nodoc:all
     }      
   end
 
+  def hash_events_token(opt)
+    timestamp = Time.now.to_i
+    params = {
+      wmid: @wmid,
+      date: timestamp,
+      sign: sign("#{@wmid}#{timestamp}")
+    }
+
+  end
+
    
 end

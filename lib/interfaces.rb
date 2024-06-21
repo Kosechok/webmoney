@@ -34,6 +34,9 @@ module Webmoney
       :set_trust          => { :url => 'https://merchant.webmoney.ru/conf/xml/XMLTrustRequest.asp'},    # x21
       :confirm_trust      => { :url => 'https://merchant.webmoney.ru/conf/xml/XMLTrustConfirm.asp'},    # x21
       :merchant_token     => { :url => 'https://merchant.webmoney.ru/conf/xml/XMLTransSave.asp'},       # x22
+      :cancel_invoice     => { url: 'XMLInvoiceRefusal.asp'},       # x23
+      get_country:          { url: 'https://passport.webmoney.ru/asp/XMLGetCountryId.asp'},
+      user_mail:            { url: 'XMLGetUsersEmailList2.asp'},
 # CREDIT API
       :credit_list        => { :url => 'https://credit.webmoney.ru/CTenders.ashx', method: :get}, # tenders list or single tender
       :credit_bid         => { :url => 'https://credit.webmoney.ru/ZTenderNew.ashx', method: :get}, #
@@ -59,7 +62,9 @@ module Webmoney
       exchanger_wmid_balance:            { url: 'https://wm.exchanger.ru/asp/XMLWMIDBalance.asp'},
       exchanger_tenders_union:           { url: 'https://wm.exchanger.ru/asp/XMLTransUnion.asp'},
 # indx
-      indx_balance:                      { url: 'https://secure.indx.ru/api/v1/tradejson.asmx?op=Balance'}
+      indx_balance:                      { url: 'https://secure.indx.ru/api/v1/tradejson.asmx?op=Balance'},
+#     events
+      events_token:                      { url: 'https://events-api.webmoney.ru/Auth/GetEventsTokenBySign', method: :get }
 
     }
   end

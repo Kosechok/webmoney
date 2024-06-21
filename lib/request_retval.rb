@@ -16,6 +16,12 @@ module Webmoney::RequestRetval    # :nodoc:all
     raise Webmoney::NonExistentWmidError unless doc.at('/response/certinfo/attestat')
   end
 
+  def retval_get_country(doc)
+    @error = doc.at('//response')['retval'].to_i
+    @errormsg = doc.at('//response')['retdesc']
+    raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error == 0
+  end
+
   def retval_find_wm(doc)
     # do nothing
     # retval = { 1 - found; 0 - not found }
@@ -99,6 +105,13 @@ module Webmoney::RequestRetval    # :nodoc:all
     raise Webmoney::ResultError, [@error, @errormsg].join('-') unless @error == 0
   end
 
+  def retval_cancel_invoice(doc)
+    retval_element = doc.at('//retval')
+    @error = retval_element.inner_html.to_i
+    @errormsg = doc.at('//retdesc').inner_html
+    raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error == 0
+    end
+
   def retval_operation_history(doc)
     retval_element = doc.at('//retval')
     @error = retval_element.inner_html.to_i
@@ -123,6 +136,7 @@ module Webmoney::RequestRetval    # :nodoc:all
     @amount = doc.at('//nearestamount').inner_html.to_f if doc.at('//nearestamount')
     raise Webmoney::UnknownTender, @error if @error == 30002
     raise Webmoney::CreditAmountError, [@error, @amount].join(' ') if @error == 30111
+    raise Webmoney::TooMuchAmount, @error if @error == 110
     raise Webmoney::ResultError, @error unless @error == 0
   end
 
@@ -227,6 +241,13 @@ module Webmoney::RequestRetval    # :nodoc:all
   end
 
   def retval_debt_credit_details(doc)
+    @error = doc.at('//retval').inner_html.to_i
+    @errormsg = doc.at('//retdesc').inner_html
+    raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error == 0
+  end
+
+
+  def retval_user_mail(doc)
     @error = doc.at('//retval').inner_html.to_i
     @errormsg = doc.at('//retdesc').inner_html
     raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error == 0

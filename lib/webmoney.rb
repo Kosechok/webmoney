@@ -28,6 +28,7 @@ module Webmoney
   class KeeperType < RequestError; end
   class ResultError < WebmoneyError; end
   class CreditAmountError < WebmoneyError; end
+  class TooMuchAmount < WebmoneyError; end
   class UnknownTender < WebmoneyError; end
   class IncorrectWmidError < WebmoneyError; end
   class IncorrectPurseError < WebmoneyError; end
@@ -174,7 +175,7 @@ module Webmoney
 
   def request(iface, opt ={})
     raise ArgumentError, "should be hash" unless opt.kind_of?(Hash)
-    raise KeeperType, "only for winpro" if (iface.to_s.include?('credit') && !classic?)
+    raise KeeperType, "only for winpro" if (iface.to_s.start_with?('credit') && !classic?)
 
     # Use self wmid when not defined
     opt[:wmid] ||= @wmid

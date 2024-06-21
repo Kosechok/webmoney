@@ -17,6 +17,19 @@ module Webmoney::RequestXML    # :nodoc:all
     }
   end
 
+  def xml_get_country(opt)
+    Nokogiri::XML::Builder.new { |x|
+      x.request {
+        x.wmid @wmid if classic?
+        x.sign sign("#{@wmid}:#{opt[:wmid]}")
+        x.data {
+          x.wmid opt[:wmid]
+        }
+
+      }
+    }
+  end
+
   def xml_bussines_level(opt)
     Nokogiri::XML::Builder.new { |x|
       x.send('WMIDLevel.request') {
@@ -353,6 +366,21 @@ module Webmoney::RequestXML    # :nodoc:all
     }
   end
 
+  def xml_cancel_invoice(opt)
+    req = reqn()
+    Nokogiri::XML::Builder.new { |x|
+      x.send('w3s.request') {
+        x.reqn req
+        x.wmid @wmid
+        x.sign sign("#{opt[:store_wmid]}#{opt[:invoice_id]}#{req}") if classic?
+        x.invoicerefuse do
+          x.wmid opt[:store_wmid]
+          x.wminvid opt[:invoice_id]
+        end
+      }
+    }
+  end
+
   def xml_exchanger_tender_place(opt)
     Nokogiri::XML::Builder.new { |x|
       x.send('wm.exchanger.request'){
@@ -493,6 +521,7 @@ module Webmoney::RequestXML    # :nodoc:all
       x.send('service.request'){
         x.wmid          @wmid
         x.t             timestamp
+        x.showdel       0 || opt[:deleted]
         x.sign          Digest::SHA1.hexdigest "#{@wmid}:#{timestamp}:#{@debt_pass}"
       }
     }
@@ -531,6 +560,7 @@ module Webmoney::RequestXML    # :nodoc:all
         x.from          Date.parse(opt[:datestart]).strftime("%Y-%m-%dT%H:%M:%S")
         x.to            Date.parse(opt[:datefinish]).strftime("%Y-%m-%dT%H:%M:%S")
         x.sign          Digest::SHA1.hexdigest "#{@wmid}:#{Date.parse(opt[:datestart]).strftime("%Y-%m-%dT%H:%M:%S")}:#{Date.parse(opt[:datefinish]).strftime("%Y-%m-%dT%H:%M:%S")}:#{@debt_pass}"
+        x.state         opt[:state]
       }
     }
   end
@@ -543,5 +573,20 @@ module Webmoney::RequestXML    # :nodoc:all
         x.sign          Digest::SHA1.hexdigest "#{@wmid}:#{opt[:credit_id]}:#{@debt_pass}"
       }
     }
+  end
+
+  def xml_user_mail(opt)
+    req = reqn()
+    Nokogiri::XML::Builder.new { |x|
+      x.send('w3s.request'){
+        x.wmid        @wmid if classic?
+        x.reqn        req
+        x.getuseremail do
+          x.wmids( opt[:by_wmid] || '' )
+        end
+        x.sign sign("#{req}:#{opt[:by_wmid]}") if classic?
+      }
+    }
+
   end
 end

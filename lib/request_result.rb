@@ -9,6 +9,14 @@ module Webmoney::RequestResult    # :nodoc:all
     Webmoney::Passport.parse_result(doc)
   end
 
+  def result_get_country(doc)
+    {
+      retval: doc.at('//retval').inner_html.to_i,
+      country_id: doc.at('//data/row')['countryid'],
+      country_name: doc.at('//data/row')['countryname']
+    }
+  end
+
   def result_bussines_level(doc)
     doc.at('//level').inner_html.to_i
   end
@@ -238,6 +246,14 @@ module Webmoney::RequestResult    # :nodoc:all
         :trustid => doc.at('//trust')['id'].to_i,
         :slavepurse => doc.at('//trust/slavepurse').inner_html.to_s,
         :slavewmid => doc.at('//trust/slavewmid').inner_html.to_s
+    }
+  end
+
+  def result_cancel_invoice(doc)
+    {
+        invoice_id: doc.at('//ininvoice')['id'].to_i,
+        state: doc.at('//ininvoice/state').inner_html.to_i,
+        update: doc.at('//ininvoice/dateupd').inner_html.to_s
     }
   end
   alias_method :result_i_trust, :result_trust_me
@@ -508,6 +524,13 @@ module Webmoney::RequestResult    # :nodoc:all
 
   def result_debt_credit_details(doc)
 
+  end
+
+  def result_user_mail(doc)
+    {
+      name: doc.at('//useremaillist/useremail')['Name'].encode('UTF-8', 'CP1251'),
+      country: doc.at('//useremaillist/useremail')['Country'].encode('UTF-8', 'CP1251')
+    }
   end
 end
 
