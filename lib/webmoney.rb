@@ -221,7 +221,7 @@ module Webmoney
       http.key = @key
     end
     http.use_ssl = true
-    http.ssl_version = :TLSv1
+    http.ssl_version = :TLSv1_2
 
     if http_method == :post                # [needle1, needle2].any? {|needle| a.include? needle}
       @last_request = req_body
