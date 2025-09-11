@@ -252,4 +252,37 @@ module Webmoney::RequestRetval    # :nodoc:all
     @errormsg = doc.at('//retdesc').inner_html
     raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error == 0
   end
+
+  def retval_create_contract(doc)
+    @error = doc.at('//retval').inner_html.to_i
+    @errormsg = doc.at('//retdesc').inner_html
+    raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error == 0
+  end
+
+  def retval_events_token(doc)
+    if doc.has_key?("code")
+      @error = doc["code"]
+      @errormsg = doc["codeMessage"]
+    end
+    raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error.nil?
+
+  end
+
+  def retval_events_create_post(doc)
+    if doc.has_key?("code")
+      @error = doc["code"]
+      @errormsg = doc["codeMessage"]
+    end
+    raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error.nil?
+
+  end
+
+  def retval_events_create_comment(doc)
+    if doc.has_key?("code")
+      @error = doc["code"]
+      @errormsg = doc["codeMessage"]
+    end
+    raise Webmoney::ResultError, [@error, @errormsg].join(' ') unless @error.nil?
+
+  end
 end

@@ -10,7 +10,7 @@ require 'rubygems'
 require 'nokogiri'
 
 $LOAD_PATH.unshift(File.expand_path(File.dirname(__FILE__) + "/../lib"))
-%w(signer interfaces wmid passport purse request_xml request_string request_retval request_result messenger string).each{|lib| require lib}
+%w(signer interfaces wmid passport purse request_xml request_json request_string request_retval request_result messenger string).each{|lib| require lib}
 
 # Module for Webmoney lib. Instance contain info
 # for WMT-interfaces requests (wmid, key, etc).
@@ -18,6 +18,7 @@ $LOAD_PATH.unshift(File.expand_path(File.dirname(__FILE__) + "/../lib"))
 module Webmoney
 
   include RequestXML
+  include RequestJSON
   include RequestRetval
   include RequestResult
   include RequestString
@@ -38,7 +39,7 @@ module Webmoney
   class ExchangeRateToFastError < WebmoneyError; end
   class RateNotChangedError < WebmoneyError; end
 
-  attr_reader :wmid, :error, :errormsg, :last_request, :last_response, :interfaces, :rid
+  attr_reader :wmid, :error, :errormsg, :last_request, :last_request_headers, :last_response, :interfaces, :rid
   attr_accessor :messenger, :debt_pass
 
 
@@ -181,10 +182,18 @@ module Webmoney
     opt[:wmid] ||= @wmid
 
     # Do request
-    res = https_request(iface, make_body(iface, opt))
+
     # Parse response
-    doc = Nokogiri::XML(res, nil, "UTF-8") do |config|
-      config.noerror.noblanks
+    if @interfaces[iface][:type] == :json# && @interfaces[iface][:method] != :get
+      body = make_body(iface, opt)
+      body = body.to_json unless @interfaces[iface][:method] == :get
+      res = https_request(iface, body, opt[:token])
+      doc = JSON.parse(res)
+    else
+      res = https_request(iface, make_body(iface, opt))
+      doc = Nokogiri::XML(res, nil, "UTF-8") do |config|
+        config.noerror.noblanks
+      end
     end
 
     parse_retval(iface, doc)
@@ -202,7 +211,7 @@ module Webmoney
 
   # Make HTTPS request, return result body if 200 OK
 
-  def https_request(iface, req_body)
+  def https_request(iface, req_body, token = nil)
     @last_request = @last_response = nil
 
     url = @interfaces[iface][:url]
@@ -224,10 +233,20 @@ module Webmoney
     http.use_ssl = true
     http.ssl_version = :TLSv1
 
+    if @interfaces[iface][:type] == :json
+      headers = {"Content-Type" => "application/json"}
+      # puts "============= #{token}  ================="
+      headers.store("accessToken", token) if token
+    else
+      headers = {"Content-Type" => "text/xml"}
+    end
+
     if http_method == :post                # [needle1, needle2].any? {|needle| a.include? needle}
       @last_request = req_body
-      @last_response = result = http.post( url.path, req_body, "Content-Type" => "text/xml" )
+      @last_request_headers = headers
+      @last_response = result = http.post( url.path, req_body, headers )
     else
+      puts req_body.class
       url.query = URI.encode_www_form(req_body)
       @last_request = url
       @last_response = result =  http.request(Net::HTTP::Get.new(url))
@@ -254,8 +273,14 @@ module Webmoney
   def make_body(iface, opt)            # :nodoc:
     http_method = @interfaces[iface][:method] || :post
     if http_method == :post
-      iface_func = "xml_#{iface}"
-      send(iface_func, opt).to_xml
+      if @interfaces[iface][:type] == :json
+        iface_func = "json_#{iface}"
+        send(iface_func, opt)
+      else
+        iface_func = "xml_#{iface}"
+        send(iface_func, opt).to_xml
+      end
+
     else
       iface_func = "hash_#{iface}"
       send(iface_func, opt)

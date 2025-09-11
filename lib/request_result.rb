@@ -532,6 +532,23 @@ module Webmoney::RequestResult    # :nodoc:all
       country: doc.at('//useremaillist/useremail')['Country'].encode('UTF-8', 'CP1251')
     }
   end
+
+  def result_create_contract(doc)
+  end
+
+  def result_events_token(doc)
+    doc['accessToken']
+
+  end
+
+  def result_events_create_post(doc)
+    doc['id']
+  end
+
+  def result_events_create_comment(doc)
+    doc['id']
+  end
+
 end
 
 

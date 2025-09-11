@@ -521,7 +521,7 @@ module Webmoney::RequestXML    # :nodoc:all
       x.send('service.request'){
         x.wmid          @wmid
         x.t             timestamp
-        x.showdel       0 || opt[:deleted]
+        x.showdel       opt[:deleted] || 0
         x.sign          Digest::SHA1.hexdigest "#{@wmid}:#{timestamp}:#{@debt_pass}"
       }
     }
@@ -575,6 +575,22 @@ module Webmoney::RequestXML    # :nodoc:all
     }
   end
 
+  def xml_debt_credit_details_for_wmid(opt)
+    timestamp = DateTime.now.strftime("%Q").to_sym
+    test_wmid = "000000000009"
+    Nokogiri::XML::Builder.new { |x|
+      x.send('service.request'){
+        x.wmid        test_wmid
+        x.t           timestamp
+        x.forwmid     opt[:borrower_wmid]
+        #out:  "xml",
+        x.sign        Digest::SHA1.hexdigest "#{test_wmid}:#{opt[:borrower_wmid]}:#{timestamp}:#{@debt_pass}"
+      }
+    }
+
+  end
+
+
   def xml_user_mail(opt)
     req = reqn()
     Nokogiri::XML::Builder.new { |x|
@@ -585,6 +601,25 @@ module Webmoney::RequestXML    # :nodoc:all
           x.wmids( opt[:by_wmid] || '' )
         end
         x.sign sign("#{req}:#{opt[:by_wmid]}") if classic?
+      }
+    }
+
+  end
+
+  def xml_create_contract(opt)
+    req = reqn()
+    Nokogiri::XML::Builder.new { |x|
+      x.send('contract.request'){
+        x.sign_wmid        @wmid if classic?
+        x.name        opt[:name]
+        x.ctype       opt[:ctype]
+        x.text_       opt[:text]
+        x.accesslist do
+          opt[:wmids].each do |wmid|
+            x.wmid wmid
+          end
+        end
+        x.sign sign("#{@wmid}:#{opt[:name].length}:#{opt[:ctype]}") if classic?
       }
     }
 

@@ -49,6 +49,7 @@ module Webmoney
       debt_return_loan:                  { url: 'https://debt.wmtransfer.com/api/creditreturn.aspx'},
       debt_credits_list:                 { url: 'https://debt.wmtransfer.com/api/credits.aspx' },
       debt_credit_details:               { url: 'https://debt.wmtransfer.com/api/credit.aspx' },
+      debt_credit_details_for_wmid:      { url: 'https://debt.wmtransfer.com/api/creditsforwmid.aspx' },
       debt_credit_lines:                 { url: 'https://debt.wmtransfer.com/api/creditlines.aspx'},
 # WM.exchanger
       exchanger_current_tenders:         { url: 'https://wm.exchanger.ru/asp/XMLWMList.asp', method: :get},
@@ -64,7 +65,9 @@ module Webmoney
 # indx
       indx_balance:                      { url: 'https://secure.indx.ru/api/v1/tradejson.asmx?op=Balance'},
 #     events
-      events_token:                      { url: 'https://events-api.webmoney.ru/Auth/GetEventsTokenBySign', method: :get }
+      events_token:                      { url: 'https://events-api.webmoney.ru/Auth/GetEventsTokenBySign', method: :get, type: :json },
+      events_create_post:                { url: 'https://events-api.webmoney.ru/Event/Post', type: :json},
+      events_create_comment:             { url: 'https://events-api.webmoney.ru/Discuss/Create', type: :json}
 
     }
   end
@@ -85,7 +88,7 @@ module Webmoney
         transform = v[:x509]
         url = transform.call(url) if !classic? && transform && transform.respond_to?(:call)
       end
-      m.merge!(k => {url: URI.parse(url), method: v[:method]})
+      m.merge!(k => {url: URI.parse(url), method: v[:method], type: v[:type]})
     end
 
   end

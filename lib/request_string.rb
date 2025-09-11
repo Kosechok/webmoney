@@ -62,6 +62,19 @@ module Webmoney::RequestString    # :nodoc:all
 
   end
 
+  def hash_debt_credit_details_for_wmid(otp)
+    timestamp = DateTime.now.strftime("%Q").to_sym
+    test_wmid = "000000000009"
+    params = {
+      wmid: test_wmid,
+      t:    timestamp,
+      forwmid: opt[:borrower_wmid],
+      out:  "xml",
+      sign: Digest::SHA1.hexdigest("#{test_wmid}:#{opt[:borrower_wmid]}:#{timestamp}:#{@debt_pass}")
+    }
+
+  end
+
   def hash_exchanger_current_tenders(opt)
     params = {
       exchtype: opt[:type]
@@ -77,6 +90,8 @@ module Webmoney::RequestString    # :nodoc:all
     }
 
   end
+
+
 
    
 end
