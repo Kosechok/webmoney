@@ -231,7 +231,7 @@ module Webmoney
       http.key = @key
     end
     http.use_ssl = true
-    http.ssl_version = :TLSv1_2
+    http.ssl_version = :TLSv1
 
     if @interfaces[iface][:type] == :json
       headers = {"Content-Type" => "application/json"}
