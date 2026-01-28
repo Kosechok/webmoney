@@ -82,6 +82,10 @@ module Webmoney
         attrs = {:created_at => (Time.xmlschema(elm['datereg']) rescue nil)}
         attrs.merge!(:nickname => elm['nickname']) unless elm['nickname'].empty?
         attrs.merge!(:info => elm['info']) unless elm['info'].empty?
+        attrs.merge!(:phone_verified => elm['phone-check-lock'][0]) unless elm['phone-check-lock'].empty?
+        attrs.merge!(:phone_locked => elm['phone-check-lock'][1]) unless elm['phone-check-lock'].empty?
+        attrs.merge!(:email_verified => elm['email-check-lock'][0]) unless elm['email-check-lock'].empty?
+        attrs.merge!(:email_locked => elm['email-check-lock'][1]) unless elm['email-check-lock'].empty?
         memo.merge!(elm['wmid'] => attrs)
       end
 
